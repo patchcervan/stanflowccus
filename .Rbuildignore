@@ -1,2 +1,5 @@
 ^stanflowccus\.Rproj$
 ^\.Rproj\.user$
+
+# Workflow scripts
+scripts/*
