@@ -2,5 +2,7 @@
 
 export(configWorkflow)
 export(createDirs)
+export(formToDesignMatrix)
 export(getConfig)
+export(makeStanDataBundle)
 export(setConfig)

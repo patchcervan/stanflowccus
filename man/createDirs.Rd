@@ -4,10 +4,12 @@
 \alias{createDirs}
 \title{Create directory structure}
 \usage{
-createDirs(project_dir = getwd())
+createDirs(project_dir = getwd(), verbose = TRUE)
 }
 \arguments{
 \item{project_dir}{Character. The path where the structure should be created. Defaults to the current working directory.}
+
+\item{verbose}{Logical. If TRUE (default) directories created and omitted are printed.}
 }
 \description{
 This function creates the directory structure for an occupancy modelling workflow
