@@ -3,19 +3,22 @@
 #' This function sets up the configuration for an occupancy modelling workflow,
 #' specifying directories, species selection, years, covariates, and model details.
 #'
-#' @param outdir Character. The output directory where results will be saved.
-#' @param sp_sel Character or numeric. The species to be analyzed (name or ID).
+#' @param data_dir Character. The directory where data should be looked for.
+#' @param out_dir Character. The output directory where results will be saved.
 #' @param years Numeric vector. The set of years for the analysis.
-#' @param trainyears Numeric vector. The subset of years used for model training.
-#' @param datatrim Character. Trimming method for data: `"none"`, `"end"`, or `"start"`.
+#' @param train_years Numeric vector. The subset of years used for model training.
+#' @param data_trim Character. Trimming method for data: `"none"`, `"end"`, or `"start"`.
 #' @param site_ids Character vector. Variables that serve as unique identifiers for sites.
 #' @param visit_ids Character vector. Variables that serve as unique identifiers for visits.
 #' @param site_covts Character vector. Site-level covariates.
 #' @param visit_covts Character vector. Visit-level covariates.
-#' @param stanmodel Character. Path to the Stan model file or model name.
-#' @param paramtoplot Character vector. Parameters to plot in diagnostics.
-#' @param paramextra Character vector. Additional parameters to monitor.
+#' @param stan_model_dir Character. Path to the Stan model directory.
+#' @param stan_model_file Character. Name of the Stan model file (optional).
+#' @param param_to_plot Character vector. Parameters to plot in diagnostics.
+#' @param param_extra Character vector. Additional parameters to monitor.
 #' @param dynamic Logical. If `TRUE`, uses a dynamic occupancy model.
+#' @param occu_temp_re Character. Temporal random effect structure for occupancy component: `"none"` or `"AR1"`.
+#' @param det_temp_re Character. Temporal random effect structure for detection component: `"none"` or `"AR1"`
 #' @param prefile Character. String used as a prefix for naming files (e.g. model fits, diagnostics) (optional).
 #' @param postfile Character. String used as a postfix for naming files (e.g. model fits, diagnostics) (optional).
 #' @param occu_models List of formulas. Occupancy model formula/s.
@@ -34,21 +37,25 @@
 #' used for occupancy, and the rest will be ignored. Models will be named according
 #' to the names of `occu_models` or by a numeric sequence if `occu_models` is unnamed.
 #'
+#' Temporal random effects defined by `occu_temp_re` affect colonization and survival
+#' components of dynamic models and occupancy component of non-dynamic models. Both
+#' `occu_temp_re` and `det_temp_re` are ignored if a `stan_model_file` is defined.
+#'
 #'
 #' @return A list containing the workflow configuration with the following components:
 #' \itemize{
-#'   \item `outdir`: Output directory.
-#'   \item `sp_sel`: Selected species.
+#'   \item `data_dir`: Data directory.
+#'   \item `out_dir`: Output directory.
 #'   \item `years`: Years included.
-#'   \item `trainyears`: Training years.
-#'   \item `datatrim`: Data trimming method.
+#'   \item `train_years`: Training years.
+#'   \item `data_trim`: Data trimming method.
 #'   \item `site_ids`: Site identifiers.
 #'   \item `visit_ids`: Visit identifiers.
 #'   \item `site_covts`: Site covariates.
 #'   \item `visit_covts`: Visit covariates.
-#'   \item `stanmodel`: Stan model specification.
-#'   \item `paramtoplot`: Parameters for plotting.
-#'   \item `paramextra`: Extra parameters.
+#'   \item `stan_model`: Stan model file path.
+#'   \item `param_to_plot`: Parameters for plotting.
+#'   \item `param_extra`: Extra parameters.
 #'   \item `dynamic`: Dynamic model flag.
 #'   \item `prefile`: File prefix.
 #'   \item `postfile`: File postfix.
@@ -56,6 +63,13 @@
 #'   \item `phi_models`: Persistence models.
 #'   \item `gamma_models`: Colonization models.
 #'   \item `det_models`: Detection models.
+#'   \item `raw_data_file`: Raw data file path.
+#'   \item `clean_data_file`: Clean and standardized data file path.
+#'   \item `occu_data_file`: Occupancy data list file path.
+#'   \item `test_data_file`: Occupancy test data list path.
+#'   \item `test_fit_file`: Occupancy test-data fit file path.
+#'   \item `test_diags_file`: Occupancy test-data fit diagnostics file path.
+#'   \item `test_sims_file`: File path to occupancy estimates/predictions from test-data fit.
 #' }
 #'
 #' @examples
@@ -63,7 +77,6 @@
 #' # Example configuration
 #' config <- configWorkflow(
 #'   outdir = "results/species1",
-#'   sp_sel = "species1",
 #'   years = 2010:2020,
 #'   trainyears = 2010:2018,
 #'   datatrim = "none",
@@ -85,19 +98,22 @@
 #' }
 #'
 #' @export
-configWorkflow <- function(outdir,
-                           sp_sel,
+configWorkflow <- function(data_dir,
+                           out_dir,
                            years,
-                           trainyears,
-                           datatrim = c("none", "end", "start"),
+                           train_years,
+                           data_trim = c("none", "end", "start"),
                            site_ids,
                            visit_ids,
                            site_covts,
                            visit_covts,
-                           stanmodel,
-                           paramtoplot,
-                           paramextra,
+                           stan_model_dir,
+                           stan_model_file = NULL,
+                           param_to_plot,
+                           param_extra,
                            dynamic = TRUE,
+                           occu_temp_re = c("none", "AR1"),
+                           det_temp_re = c("none", "AR1"),
                            prefile = NULL,
                            postfile = NULL,
                            occu_models,
@@ -106,10 +122,12 @@ configWorkflow <- function(outdir,
                            det_models,
                            verbose = FALSE){
 
-    datatrim <- match.arg(datatrim)
+    data_trim <- match.arg(data_trim)
+    occu_temp_re <- match.arg(occu_temp_re)
+    det_temp_re <- match.arg(det_temp_re)
 
     # Join parameters to plot and summarise with other parameters of interest
-    paramall <- c(paramtoplot, paramextra)
+    paramall <- c(param_to_plot, param_extra)
 
 
 
@@ -125,23 +143,33 @@ configWorkflow <- function(outdir,
         postfile <- paste0("_", postfile, "_")
     }
 
+    if(data_trim != "none"){
+        trimtext <- paste0("_trim", data_trim)
+    } else {
+        trimtext <- ""
+    }
+
     # Define model data file name
-    datafile <- file.path(outdir, sp_sel,
-                          paste0("model_data", prefile, sp_sel, postfile, ".rds"))
+    datafile <- file.path(data_dir,
+                          paste0("model_data", prefile, postfile, ".rds"))
+
+    # Define clean data file
+    cleandatafile <- file.path(out_dir,
+                               paste0("model_data", prefile, postfile, trimtext, ".rds"))
 
     # Define occupancy data list file name
-    occufile <- file.path(outdir, sp_sel,
-                          paste0("occu_data", prefile, sp_sel, postfile, ".rds"))
+    occufile <- file.path(out_dir,
+                          paste0("occu_data", prefile, postfile, trimtext, ".rds"))
 
     # Define occupancy test data list file name
-    testfile <- file.path(outdir, sp_sel,
-                          paste0("occu_test_data", prefile, sp_sel, postfile, ".rds"))
+    testfile <- file.path(out_dir,
+                          paste0("occu_test_data", prefile, postfile, trimtext, ".rds"))
 
     # Define test model fit
     testfitfile <- rep(NA, length = length(occu_models)*length(det_models))
-    predsfile <- rep(NA, length = length(occu_models)*length(det_models))
-    diagsfile <- rep(NA, length = length(occu_models)*length(det_models))
-    simsfile <- rep(NA, length = length(occu_models)*length(det_models))
+    testpredsfile <- rep(NA, length = length(occu_models)*length(det_models))
+    testdiagsfile <- rep(NA, length = length(occu_models)*length(det_models))
+    testsimsfile <- rep(NA, length = length(occu_models)*length(det_models))
 
     k <- 1
     for(i in seq_along(occu_models)){
@@ -159,23 +187,19 @@ configWorkflow <- function(outdir,
                 jj <- names(det_models)[j]
             }
 
-            testfitfile[k] <- file.path(outdir, sp_sel,
-                                        paste0("test_fit", prefile, sp_sel, postfile,
-                                               "_occu", ii, "_det", jj, "_trim", datatrim, ".rds"))
-            # Define file for saving predictions
-            predsfile[k] <- file.path(outdir, sp_sel,
-                                      paste0("preds_stan", prefile, sp_sel, postfile,
-                                             "_occu", ii, "_det", jj, "_trim", datatrim, ".rds"))
+            testfitfile[k] <- file.path(out_dir,
+                                        paste0("test_fit", prefile, postfile,
+                                               "_occu", ii, "_det", jj, trimtext, ".rds"))
 
-            # Define file for saving predictions
-            diagsfile[k] <- file.path(outdir, sp_sel,
-                                      paste0("diags_stan", prefile, sp_sel, postfile,
-                                             "_occu", ii, "_det", jj, "_trim", datatrim, ".rds"))
+            # Define file for saving diagnostics
+            testdiagsfile[k] <- file.path(out_dir,
+                                      paste0("diags_stan", prefile, postfile,
+                                             "_occu", ii, "_det", jj, trimtext, ".rds"))
 
-            # Define file for saving simulations
-            simsfile[k] <- file.path(outdir, sp_sel,
-                                     paste0("sims_stan", prefile, sp_sel, postfile,
-                                            "_occu", ii, "_det", jj, "_trim", datatrim, ".rds"))
+            # Define file for saving estimates/predictions
+            testsimsfile[k] <- file.path(out_dir,
+                                     paste0("sims_stan", prefile, postfile,
+                                            "_occu", ii, "_det", jj, trimtext, ".rds"))
 
             k = k+1
         }
@@ -183,33 +207,39 @@ configWorkflow <- function(outdir,
 
 
     # Create output list
-    setConfig(outdir = outdir,
-              sp_sel = sp_sel,
+    setConfig(data_dir = data_dir,
+              out_dir = out_dir,
               years = years,
               years_ch = years_ch,
-              train_years = trainyears,
-              datatrim = datatrim,
+              train_years = train_years,
+              data_trim = data_trim,
               site_ids = site_ids,
               visit_ids = visit_ids,
               site_covts = site_covts,
               visit_covts = visit_covts,
-              stan_model = stanmodel,
-              param_to_plot = paramtoplot,
+              stan_model = file.path(stan_model_dir, stan_model_file),
+              param_to_plot = param_to_plot,
               param_all = paramall,
               dynamic = dynamic,
               prefile = prefile,
               postfile = postfile,
-              datafile = datafile,
-              occufile = occufile,
-              testfile = testfile,
-              testfitfile = testfitfile,
-              predsfile = predsfile,
-              diagsfile = diagsfile,
-              simsfile = simsfile)
+              occu_models = occu_models,
+              phi_models = phi_models,
+              gamma_models = gamma_models,
+              det_models = det_models,
+              raw_data_file = datafile,
+              clean_data_file = cleandatafile,
+              occu_data_file = occufile,
+              test_data_file = testfile,
+              test_fit_file = testfitfile,
+              # Add all-data file
+              test_diags_file = testdiagsfile,
+              test_sims_file = testsimsfile)
+
 
     if(verbose){
         message("Analysis configuration set to:")
-        message(getConfig())
+        print(getConfig())
     } else {
         message("Analysis configuration set. Run getConfig() to retrieve config parameters")
     }

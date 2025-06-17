@@ -5,37 +5,41 @@
 \title{Configure a Workflow for Occupancy Modelling with Stan}
 \usage{
 configWorkflow(
-  outdir,
-  sp_sel,
+  data_dir,
+  out_dir,
   years,
-  trainyears,
-  datatrim = c("none", "end", "start"),
+  train_years,
+  data_trim = c("none", "end", "start"),
   site_ids,
   visit_ids,
   site_covts,
   visit_covts,
-  stanmodel,
-  paramtoplot,
-  paramextra,
+  stan_model_dir,
+  stan_model_file = NULL,
+  param_to_plot,
+  param_extra,
   dynamic = TRUE,
+  occu_temp_re = c("none", "AR1"),
+  det_temp_re = c("none", "AR1"),
   prefile = NULL,
   postfile = NULL,
   occu_models,
   phi_models = NULL,
   gamma_models = NULL,
-  det_models
+  det_models,
+  verbose = FALSE
 )
 }
 \arguments{
-\item{outdir}{Character. The output directory where results will be saved.}
+\item{data_dir}{Character. The directory where data should be looked for.}
 
-\item{sp_sel}{Character or numeric. The species to be analyzed (name or ID).}
+\item{out_dir}{Character. The output directory where results will be saved.}
 
 \item{years}{Numeric vector. The set of years for the analysis.}
 
-\item{trainyears}{Numeric vector. The subset of years used for model training.}
+\item{train_years}{Numeric vector. The subset of years used for model training.}
 
-\item{datatrim}{Character. Trimming method for data: \code{"none"}, \code{"end"}, or \code{"start"}.}
+\item{data_trim}{Character. Trimming method for data: \code{"none"}, \code{"end"}, or \code{"start"}.}
 
 \item{site_ids}{Character vector. Variables that serve as unique identifiers for sites.}
 
@@ -45,13 +49,19 @@ configWorkflow(
 
 \item{visit_covts}{Character vector. Visit-level covariates.}
 
-\item{stanmodel}{Character. Path to the Stan model file or model name.}
+\item{stan_model_dir}{Character. Path to the Stan model directory.}
 
-\item{paramtoplot}{Character vector. Parameters to plot in diagnostics.}
+\item{stan_model_file}{Character. Name of the Stan model file (optional).}
 
-\item{paramextra}{Character vector. Additional parameters to monitor.}
+\item{param_to_plot}{Character vector. Parameters to plot in diagnostics.}
+
+\item{param_extra}{Character vector. Additional parameters to monitor.}
 
 \item{dynamic}{Logical. If \code{TRUE}, uses a dynamic occupancy model.}
+
+\item{occu_temp_re}{Character. Temporal random effect structure for occupancy component: \code{"none"} or \code{"AR1"}.}
+
+\item{det_temp_re}{Character. Temporal random effect structure for detection component: \code{"none"} or \code{"AR1"}}
 
 \item{prefile}{Character. String used as a prefix for naming files (e.g. model fits, diagnostics) (optional).}
 
@@ -64,22 +74,24 @@ configWorkflow(
 \item{gamma_models}{List of formulas. Colonization model formula/s (for dynamic models).}
 
 \item{det_models}{List of formulas. Detection model formula/s.}
+
+\item{verbose}{Logical. If TRUE all configuration parameters are printed. Defaults to FALSE.}
 }
 \value{
 A list containing the workflow configuration with the following components:
 \itemize{
-\item \code{outdir}: Output directory.
-\item \code{sp_sel}: Selected species.
+\item \code{data_dir}: Data directory.
+\item \code{out_dir}: Output directory.
 \item \code{years}: Years included.
-\item \code{trainyears}: Training years.
-\item \code{datatrim}: Data trimming method.
+\item \code{train_years}: Training years.
+\item \code{data_trim}: Data trimming method.
 \item \code{site_ids}: Site identifiers.
 \item \code{visit_ids}: Visit identifiers.
 \item \code{site_covts}: Site covariates.
 \item \code{visit_covts}: Visit covariates.
-\item \code{stanmodel}: Stan model specification.
-\item \code{paramtoplot}: Parameters for plotting.
-\item \code{paramextra}: Extra parameters.
+\item \code{stan_model}: Stan model file path.
+\item \code{param_to_plot}: Parameters for plotting.
+\item \code{param_extra}: Extra parameters.
 \item \code{dynamic}: Dynamic model flag.
 \item \code{prefile}: File prefix.
 \item \code{postfile}: File postfix.
@@ -87,6 +99,13 @@ A list containing the workflow configuration with the following components:
 \item \code{phi_models}: Persistence models.
 \item \code{gamma_models}: Colonization models.
 \item \code{det_models}: Detection models.
+\item \code{raw_data_file}: Raw data file path.
+\item \code{clean_data_file}: Clean and standardized data file path.
+\item \code{occu_data_file}: Occupancy data list file path.
+\item \code{test_data_file}: Occupancy test data list path.
+\item \code{test_fit_file}: Occupancy test-data fit file path.
+\item \code{test_diags_file}: Occupancy test-data fit diagnostics file path.
+\item \code{test_sims_file}: File path to occupancy estimates/predictions from test-data fit.
 }
 }
 \description{
@@ -102,13 +121,16 @@ used for colonization. Models will be paired elementwise, ie., \code{occu_models
 occupancy model. If the model is not dynamic, then \code{occu_models[[i]]} will be
 used for occupancy, and the rest will be ignored. Models will be named according
 to the names of \code{occu_models} or by a numeric sequence if \code{occu_models} is unnamed.
+
+Temporal random effects defined by \code{occu_temp_re} affect colonization and survival
+components of dynamic models and occupancy component of non-dynamic models. Both
+\code{occu_temp_re} and \code{det_temp_re} are ignored if a \code{stan_model_file} is defined.
 }
 \examples{
 \dontrun{
 # Example configuration
 config <- configWorkflow(
   outdir = "results/species1",
-  sp_sel = "species1",
   years = 2010:2020,
   trainyears = 2010:2018,
   datatrim = "none",
