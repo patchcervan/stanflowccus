@@ -4,7 +4,7 @@
 #' for visit data named "visit". The site data frame must contain at least one column named
 #' "site_id" indexing the sites and one named "season_id" indexing the seasons. The
 #' visit data frame must at least have one column named "det" with a 1 for detections and
-#' 0 for non-detections
+#' 0 for non-detections and a "visit_id" column indexing the visits (overall, not within seasons).
 #' @param occ_formula Formula. A formula object specifying the initial occurrence model
 #' @param phi_formula Formula. A formula object specifying the persistence dynamics model
 #' @param gamma_formula Formula. A formula object specifying the colonization dynamics model

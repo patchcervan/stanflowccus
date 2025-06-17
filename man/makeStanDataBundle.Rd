@@ -5,7 +5,7 @@
 \title{Create a Stan data bundle}
 \usage{
 makeStanDataBundle(
-  stan_data,
+  occu_data,
   occ_formula,
   phi_formula = NULL,
   gamma_formula = NULL,
@@ -14,11 +14,11 @@ makeStanDataBundle(
 )
 }
 \arguments{
-\item{stan_data}{List. A list with two dataframes: one for site data named "site" and one
+\item{occu_data}{List. A list with two dataframes: one for site data named "site" and one
 for visit data named "visit". The site data frame must contain at least one column named
 "site_id" indexing the sites and one named "season_id" indexing the seasons. The
 visit data frame must at least have one column named "det" with a 1 for detections and
-0 for non-detections}
+0 for non-detections and a "visit_id" column indexing the visits (overall, not within seasons).}
 
 \item{occ_formula}{Formula. A formula object specifying the initial occurrence model}
 
@@ -39,7 +39,7 @@ Create a Stan data bundle
 }
 \examples{
 
-stan_data <- list(site = data.frame(site_id = rep(1:3, 3),
+occu_data <- list(site = data.frame(site_id = rep(1:3, 3),
                                     season_id = rep(1:3, each = 3)),
                   visit = data.frame(site_id = rep(1:3, 7),
                                      season_id = rep(1:3, each = 7),
@@ -49,7 +49,7 @@ stan_data <- list(site = data.frame(site_id = rep(1:3, 3),
 occu_form <- ~ 1
 det_form <- ~ effort
 
-makeStanDataBundle(stan_data,
+makeStanDataBundle(occu_data,
                    occ_formula = occu_form,
                    det_formula = det_form,
                    dynamic = FALSE)
