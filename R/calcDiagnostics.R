@@ -120,7 +120,7 @@ calcDiagnostics <- function(occu_data, fit, test_seasons = NULL, verbose = TRUE)
         # Integrate likelihood for each site
         prob_data <- occu_data$visit |>
             dplyr::distinct(site_id) |>
-            dplyr::mutate(prob = apply(preds, 2, log_sum_exp) - log(niter))
+            dplyr::mutate(prob = apply(preds, 2, logSumExp) - log(niter))
 
         # Take the mean
         diags$lik_out <- prob_data |>
@@ -148,7 +148,7 @@ calcDiagnostics <- function(occu_data, fit, test_seasons = NULL, verbose = TRUE)
     # Integrate likelihood for each site
     prob_data <- occu_data$visit |>
         dplyr::distinct(site_id) |>
-        dplyr::mutate(prob = apply(preds, 2, log_sum_exp) - log(niter))
+        dplyr::mutate(prob = apply(preds, 2, logSumExp) - log(niter))
 
     diags$lik_in <- prob_data |>
         dplyr::pull(prob) |>

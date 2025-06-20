@@ -16,7 +16,7 @@
 #' @examples
 #' log_sum_exp(log(5))
 #'
-log_sum_exp <- function(mu){
+logSumExp <- function(mu){
 
   maxmu <- max(mu)
 
