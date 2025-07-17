@@ -88,7 +88,8 @@ summariseSims <- function(occu_data, fit,
             dplyr::mutate(variable = pred_var,
                           mean = apply(sim_dist, 1, mean, na.rm = TRUE),
                           ub = apply(sim_dist, 1, quantile, 0.975, na.rm = TRUE),
-                          lb = apply(sim_dist, 1, quantile, 0.025, na.rm = TRUE))
+                          lb = apply(sim_dist, 1, quantile, 0.025, na.rm = TRUE),
+                          sd = apply(sim_dist, 1, sd, na.rm = TRUE))
 
     }
 
@@ -142,7 +143,8 @@ summariseSims <- function(occu_data, fit,
             dplyr::mutate(variable = pred_var,
                           mean = apply(sim_dist, 1, mean, na.rm = TRUE),
                           ub = apply(sim_dist, 1, quantile, 0.975, na.rm = TRUE),
-                          lb = apply(sim_dist, 1, quantile, 0.025, na.rm = TRUE))
+                          lb = apply(sim_dist, 1, quantile, 0.025, na.rm = TRUE),
+                          sd = apply(sim_dist, 1, sd, na.rm = TRUE))
     }
 
     if(pred_var == "p_cond"){
@@ -195,7 +197,8 @@ summariseSims <- function(occu_data, fit,
             dplyr::mutate(variable = pred_var,
                           mean = apply(sim_dist, 1, mean, na.rm = TRUE),
                           ub = apply(sim_dist, 1, quantile, 0.975, na.rm = TRUE),
-                          lb = apply(sim_dist, 1, quantile, 0.025, na.rm = TRUE))
+                          lb = apply(sim_dist, 1, quantile, 0.025, na.rm = TRUE),
+                          sd = apply(sim_dist, 1, sd, na.rm = TRUE))
 
     }
 
