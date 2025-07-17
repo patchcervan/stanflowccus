@@ -75,20 +75,7 @@ makeStanDataBundle <- function(occu_data, occ_formula,
         # data generation, where there is an initial occupancy
         # and the following season depend on the covariates of the
         # previous season
-        X_psi <- formToDesignMatrix(occ_formula,
-                                    dplyr::bind_rows(occu_data$site |>
-                                                         dplyr::group_by(site_id) |>
-                                                         dplyr::arrange(season_id) |>
-                                                         dplyr::slice(1) |>
-                                                         dplyr::ungroup(),
-                                              occu_data$site |>
-                                                  dplyr::group_by(site_id) |>
-                                                  dplyr::arrange(season_id) |>
-                                                  dplyr::slice(-dplyr::n()) |>
-                                                  dplyr::mutate(season_id = season_id + 1,) |>
-                                                  dplyr::ungroup()) |>
-                                        dplyr::arrange(site_id, season_id))
-
+        X_psi <- formToDesignMatrix(occ_formula, occu_data$site)
 
         X_psi <- X_psi[[1]] |> as.matrix()
 
