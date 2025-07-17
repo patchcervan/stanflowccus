@@ -16,7 +16,9 @@
 #' @param stan_model_file Character. Name of the Stan model file (optional).
 #' @param param_to_plot Character vector. Parameters to plot in diagnostics.
 #' @param param_extra Character vector. Additional parameters to monitor.
-#' @param dynamic Logical. If `TRUE`, uses a dynamic occupancy model.
+#' @param dynamic Logical. If `TRUE` (default), uses a dynamic occupancy model.
+#' @param spatial Logical. If `TRUE`, uses a model with spatial dependency based on a distance matrix.
+#' Defaults to `FALSE`.
 #' @param occu_temp_re Character. Temporal random effect structure for occupancy component: `"none"` or `"AR1"`.
 #' @param det_temp_re Character. Temporal random effect structure for detection component: `"none"` or `"AR1"`
 #' @param prefile Character. String used as a prefix for naming files (e.g. model fits, diagnostics) (optional).
@@ -57,6 +59,7 @@
 #'   \item `param_to_plot`: Parameters for plotting.
 #'   \item `param_extra`: Extra parameters.
 #'   \item `dynamic`: Dynamic model flag.
+#'   \item `spatial`: Spatial model flag.
 #'   \item `prefile`: File prefix.
 #'   \item `postfile`: File postfix.
 #'   \item `occu_models`: Occupancy models.
@@ -88,6 +91,7 @@
 #'   paramtoplot = c("psi", "p"),
 #'   paramextra = c("gamma", "phi"),
 #'   dynamic = TRUE,
+#'   spatial = FALSE,
 #'   prefile = "preprocess.R",
 #'   postfile = "postprocess.R",
 #'   occu_models = c("~1", "~covariate1"),
@@ -112,6 +116,7 @@ configWorkflow <- function(data_dir,
                            param_to_plot,
                            param_extra,
                            dynamic = TRUE,
+                           spatial = FALSE,
                            occu_temp_re = c("none", "AR1"),
                            det_temp_re = c("none", "AR1"),
                            prefile = NULL,
@@ -136,11 +141,15 @@ configWorkflow <- function(data_dir,
     years_ch <- paste(substr(range(years), 3, 4), collapse = "_")
 
     if(!is.null(prefile)){
-        prefile <- paste0("_", prefile, "_")
+        prefile_ <- paste0("_", prefile)
+    } else {
+        prefile_ <- NULL
     }
 
     if(!is.null(postfile)){
-        postfile <- paste0("_", postfile, "_")
+        postfile_ <- paste0("_", postfile)
+    } else {
+        postfile_ <- NULL
     }
 
     if(data_trim != "none"){
@@ -151,19 +160,19 @@ configWorkflow <- function(data_dir,
 
     # Define model data file name
     datafile <- file.path(data_dir,
-                          paste0("model_data", prefile, postfile, ".rds"))
+                          paste0("model_data", prefile_, postfile_, ".rds"))
 
     # Define clean data file
     cleandatafile <- file.path(out_dir,
-                               paste0("model_data", prefile, postfile, trimtext, ".rds"))
+                               paste0("model_data", prefile_, postfile_, trimtext, ".rds"))
 
     # Define occupancy data list file name
     occufile <- file.path(out_dir,
-                          paste0("occu_data", prefile, postfile, trimtext, ".rds"))
+                          paste0("occu_data", prefile_, postfile_, trimtext, ".rds"))
 
     # Define occupancy test data list file name
     testfile <- file.path(out_dir,
-                          paste0("occu_test_data", prefile, postfile, trimtext, ".rds"))
+                          paste0("occu_test_data", prefile_, postfile_, trimtext, ".rds"))
 
     # Define test model fit
     testfitfile <- rep(NA, length = length(occu_models)*length(det_models))
@@ -188,17 +197,17 @@ configWorkflow <- function(data_dir,
             }
 
             testfitfile[k] <- file.path(out_dir,
-                                        paste0("test_fit", prefile, postfile,
+                                        paste0("test_fit", prefile_, postfile_,
                                                "_occu", ii, "_det", jj, trimtext, ".rds"))
 
             # Define file for saving diagnostics
             testdiagsfile[k] <- file.path(out_dir,
-                                      paste0("diags_stan", prefile, postfile,
+                                      paste0("diags_stan", prefile_, postfile_,
                                              "_occu", ii, "_det", jj, trimtext, ".rds"))
 
             # Define file for saving estimates/predictions
             testsimsfile[k] <- file.path(out_dir,
-                                     paste0("sims_stan", prefile, postfile,
+                                     paste0("sims_stan", prefile_, postfile_,
                                             "_occu", ii, "_det", jj, trimtext, ".rds"))
 
             k = k+1
@@ -221,6 +230,7 @@ configWorkflow <- function(data_dir,
               param_to_plot = param_to_plot,
               param_all = paramall,
               dynamic = dynamic,
+              spatial = spatial,
               prefile = prefile,
               postfile = postfile,
               occu_models = occu_models,

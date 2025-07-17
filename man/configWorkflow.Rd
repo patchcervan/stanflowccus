@@ -19,6 +19,7 @@ configWorkflow(
   param_to_plot,
   param_extra,
   dynamic = TRUE,
+  spatial = FALSE,
   occu_temp_re = c("none", "AR1"),
   det_temp_re = c("none", "AR1"),
   prefile = NULL,
@@ -57,7 +58,10 @@ configWorkflow(
 
 \item{param_extra}{Character vector. Additional parameters to monitor.}
 
-\item{dynamic}{Logical. If \code{TRUE}, uses a dynamic occupancy model.}
+\item{dynamic}{Logical. If \code{TRUE} (default), uses a dynamic occupancy model.}
+
+\item{spatial}{Logical. If \code{TRUE}, uses a model with spatial dependency based on a distance matrix.
+Defaults to \code{FALSE}.}
 
 \item{occu_temp_re}{Character. Temporal random effect structure for occupancy component: \code{"none"} or \code{"AR1"}.}
 
@@ -93,6 +97,7 @@ A list containing the workflow configuration with the following components:
 \item \code{param_to_plot}: Parameters for plotting.
 \item \code{param_extra}: Extra parameters.
 \item \code{dynamic}: Dynamic model flag.
+\item \code{spatial}: Spatial model flag.
 \item \code{prefile}: File prefix.
 \item \code{postfile}: File postfix.
 \item \code{occu_models}: Occupancy models.
@@ -142,6 +147,7 @@ config <- configWorkflow(
   paramtoplot = c("psi", "p"),
   paramextra = c("gamma", "phi"),
   dynamic = TRUE,
+  spatial = FALSE,
   prefile = "preprocess.R",
   postfile = "postprocess.R",
   occu_models = c("~1", "~covariate1"),
