@@ -1,7 +1,7 @@
 #' Summarise Stan estimates/predictions
 #'
 #' @inheritParams makeStanDataBundle
-#' @param group_vars Character. Variable used for grouping predictions. Either `season_id` or `site_id`.
+#' @param group_var Character. Variable used for grouping predictions. Either `season_id` or `site_id`.
 #' @param pred_var Character. The parameter we want to summarise. One of:
 #' "psi", "p", "p_cond", "psi_eq"
 #'

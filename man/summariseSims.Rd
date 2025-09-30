@@ -18,10 +18,10 @@ for visit data named "visit". The site data frame must contain at least one colu
 visit data frame must at least have one column named "det" with a 1 for detections and
 0 for non-detections and a "visit_id" column indexing the visits (overall, not within seasons).}
 
+\item{group_var}{Character. Variable used for grouping predictions. Either \code{season_id} or \code{site_id}.}
+
 \item{pred_var}{Character. The parameter we want to summarise. One of:
 "psi", "p", "p_cond", "psi_eq"}
-
-\item{group_vars}{Character. Variable used for grouping predictions. Either \code{season_id} or \code{site_id}.}
 }
 \value{
 A matrix of summarised estimates/predictions by the variables specified in
