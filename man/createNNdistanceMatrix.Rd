@@ -7,7 +7,7 @@
 createNNdistanceMatrix(dist_matrix, nNN = 24)
 }
 \arguments{
-\item{dist_matrix}{Matrix. A distance matrix where each entry \link{i, j} corresponds to the distance between sites i and j.}
+\item{dist_matrix}{Matrix. A distance matrix where each entry c(i, j) corresponds to the distance between sites i and j.}
 
 \item{nNN}{Numeric. The number of nearest neighbours to retain. Defaults to 24.}
 }

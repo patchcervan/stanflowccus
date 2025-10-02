@@ -1,6 +1,6 @@
 #' Create Nearest Neighbours distance matrix
 #'
-#' @param dist_matrix Matrix. A distance matrix where each entry [i, j] corresponds to the distance between sites i and j.
+#' @param dist_matrix Matrix. A distance matrix where each entry c(i, j) corresponds to the distance between sites i and j.
 #' @param nNN Numeric. The number of nearest neighbours to retain. Defaults to 24.
 #'
 #' @return A distance matrix with the same rows as `dist_matrix` and `nNN` columns
