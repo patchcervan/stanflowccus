@@ -7,8 +7,8 @@
 configWorkflow(
   data_dir,
   out_dir,
-  years,
-  train_years,
+  seasons,
+  train_seasons,
   data_trim = c("none", "end", "start"),
   site_ids,
   visit_ids,
@@ -36,9 +36,9 @@ configWorkflow(
 
 \item{out_dir}{Character. The output directory where results will be saved.}
 
-\item{years}{Numeric vector. The set of years for the analysis.}
+\item{seasons}{Numeric vector. The set of seasons for the analysis.}
 
-\item{train_years}{Numeric vector. The subset of years used for model training.}
+\item{train_seasons}{Numeric vector. The subset of seasons used for model training.}
 
 \item{data_trim}{Character. Trimming method for data: \code{"none"}, \code{"end"}, or \code{"start"}.}
 
@@ -86,8 +86,8 @@ A list containing the workflow configuration with the following components:
 \itemize{
 \item \code{data_dir}: Data directory.
 \item \code{out_dir}: Output directory.
-\item \code{years}: Years included.
-\item \code{train_years}: Training years.
+\item \code{seasons}: seasons included.
+\item \code{train_seasons}: Training seasons.
 \item \code{data_trim}: Data trimming method.
 \item \code{site_ids}: Site identifiers.
 \item \code{visit_ids}: Visit identifiers.
@@ -115,7 +115,7 @@ A list containing the workflow configuration with the following components:
 }
 \description{
 This function sets up the configuration for an occupancy modelling workflow,
-specifying directories, species selection, years, covariates, and model details.
+specifying directories, species selection, seasons, covariates, and model details.
 }
 \details{
 The lists \code{occu_models}, \code{phi_models}, \code{gamma_models} (if they exist) must have the same
@@ -136,8 +136,8 @@ components of dynamic models and occupancy component of non-dynamic models. Both
 # Example configuration
 config <- configWorkflow(
   outdir = "results/species1",
-  years = 2010:2020,
-  trainyears = 2010:2018,
+  seasons = 2010:2020,
+  trainseasons = 2010:2018,
   datatrim = "none",
   site_ids = sites$site_id,
   visit_ids = visits$visit_id,

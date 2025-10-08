@@ -1,12 +1,12 @@
 #' Configure a Workflow for Occupancy Modelling with Stan
 #'
 #' This function sets up the configuration for an occupancy modelling workflow,
-#' specifying directories, species selection, years, covariates, and model details.
+#' specifying directories, species selection, seasons, covariates, and model details.
 #'
 #' @param data_dir Character. The directory where data should be looked for.
 #' @param out_dir Character. The output directory where results will be saved.
-#' @param years Numeric vector. The set of years for the analysis.
-#' @param train_years Numeric vector. The subset of years used for model training.
+#' @param seasons Numeric vector. The set of seasons for the analysis.
+#' @param train_seasons Numeric vector. The subset of seasons used for model training.
 #' @param data_trim Character. Trimming method for data: `"none"`, `"end"`, or `"start"`.
 #' @param site_ids Character vector. Variables that serve as unique identifiers for sites.
 #' @param visit_ids Character vector. Variables that serve as unique identifiers for visits.
@@ -48,8 +48,8 @@
 #' \itemize{
 #'   \item `data_dir`: Data directory.
 #'   \item `out_dir`: Output directory.
-#'   \item `years`: Years included.
-#'   \item `train_years`: Training years.
+#'   \item `seasons`: seasons included.
+#'   \item `train_seasons`: Training seasons.
 #'   \item `data_trim`: Data trimming method.
 #'   \item `site_ids`: Site identifiers.
 #'   \item `visit_ids`: Visit identifiers.
@@ -80,8 +80,8 @@
 #' # Example configuration
 #' config <- configWorkflow(
 #'   outdir = "results/species1",
-#'   years = 2010:2020,
-#'   trainyears = 2010:2018,
+#'   seasons = 2010:2020,
+#'   trainseasons = 2010:2018,
 #'   datatrim = "none",
 #'   site_ids = sites$site_id,
 #'   visit_ids = visits$visit_id,
@@ -104,8 +104,8 @@
 #' @export
 configWorkflow <- function(data_dir,
                            out_dir,
-                           years,
-                           train_years,
+                           seasons,
+                           train_seasons,
                            data_trim = c("none", "end", "start"),
                            site_ids,
                            visit_ids,
@@ -138,7 +138,7 @@ configWorkflow <- function(data_dir,
 
     # Define file names -------------------------------------------------------
 
-    years_ch <- paste(substr(range(years), 3, 4), collapse = "_")
+    seasons_ch <- paste(substr(range(seasons), 3, 4), collapse = "_")
 
     if(!is.null(prefile)){
         prefile_ <- paste0("_", prefile)
@@ -218,9 +218,9 @@ configWorkflow <- function(data_dir,
     # Create output list
     setConfig(data_dir = data_dir,
               out_dir = out_dir,
-              years = years,
-              years_ch = years_ch,
-              train_years = train_years,
+              seasons = seasons,
+              seasons_ch = seasons_ch,
+              train_seasons = train_seasons,
               data_trim = data_trim,
               site_ids = site_ids,
               visit_ids = visit_ids,
