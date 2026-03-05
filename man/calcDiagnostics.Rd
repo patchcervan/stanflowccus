@@ -4,7 +4,13 @@
 \alias{calcDiagnostics}
 \title{Calculate diagnostics of a Stan occupancy fit}
 \usage{
-calcDiagnostics(occu_data, fit, test_seasons = NULL, verbose = TRUE)
+calcDiagnostics(
+  occu_data,
+  fit,
+  test_seasons = NULL,
+  verbose = TRUE,
+  collapse_AUC = FALSE
+)
 }
 \arguments{
 \item{occu_data}{List. A list with two dataframes: one for site data named "site" and one
@@ -18,6 +24,9 @@ visit data frame must at least have one column named "det" with a 1 for detectio
 \item{test_seasons}{A numeric vector containing the seasons (\code{season_id}) used for testing.}
 
 \item{verbose}{Logical. If TRUE (default), progress of diagnostics is displayed.}
+
+\item{collapse_AUC}{Logical, indicating whether season-level AUC Pr(≥1 detection in season t) or
+visit-level AUC Pr(detection in visit j) is computed}
 }
 \value{
 A list of diagnostics
