@@ -51,21 +51,6 @@ calcDiagnostics <- function(occu_data, fit, test_seasons = NULL, verbose = TRUE,
 
         preds <- p_marg
 
-        # what site-years in visits are in sites
-        keep <- occu_data$site |>
-            dplyr::select(site_id, season_id) |>
-            dplyr::left_join(occu_data$visit |>
-                                 dplyr::filter(!is.na(det)) |>
-                                 dplyr::distinct(site_id, season_id) |>
-                                 dplyr::mutate(exists = 1),
-                             by = c("site_id", "season_id")) |>
-            dplyr::mutate(idx = ifelse(is.na(exists), NA, row_number())) |>
-            dplyr::pull(idx)
-
-        keep <- keep[!is.na(keep)]
-
-        psi <- psi[, keep]
-
     } else {
 
         # Use conditional probability of detection from model fit
@@ -89,6 +74,22 @@ calcDiagnostics <- function(occu_data, fit, test_seasons = NULL, verbose = TRUE,
 
         if(collapse_AUC){
 
+            # Subset psi values to site-years in visits that are in sites
+            keep <- occu_data$site |>
+                dplyr::select(site_id, season_id) |>
+                dplyr::left_join(occu_data$visit |>
+                                     dplyr::filter(!is.na(det),
+                                                   season_id %in% test_seasons) |>
+                                     dplyr::distinct(site_id, season_id) |>
+                                     dplyr::mutate(exists = 1),
+                                 by = c("site_id", "season_id")) |>
+                dplyr::mutate(idx = ifelse(is.na(exists), NA, row_number())) |>
+                dplyr::pull(idx)
+
+            keep <- keep[!is.na(keep)]
+
+            psi_out <- psi[, keep]
+
             pred_roc <- pROC::roc(response = occu_data$visit |>
                                       dplyr::select(site_id, season_id, visit_id, det) |>
                                       dplyr::filter(!is.na(det)) |>
@@ -106,7 +107,7 @@ calcDiagnostics <- function(occu_data, fit, test_seasons = NULL, verbose = TRUE,
                                       dplyr::group_by(site_id, season_id) |>
                                       dplyr::summarise(pseason = 1 - exp(sum(logoneminusp))) |>
                                       dplyr::ungroup() |>
-                                      dplyr::mutate(psi_mu = apply(psi, 2, mean),
+                                      dplyr::mutate(psi_mu = apply(psi_out, 2, mean),
                                                     pdet = psi_mu * pseason) |>
                                       dplyr::pull(pdet))
 
@@ -150,6 +151,22 @@ calcDiagnostics <- function(occu_data, fit, test_seasons = NULL, verbose = TRUE,
 
         if(collapse_AUC){
 
+            # Subset psi values to site-years in visits that are in sites
+            keep <- occu_data$site |>
+                dplyr::select(site_id, season_id) |>
+                dplyr::left_join(occu_data$visit |>
+                                     dplyr::filter(!is.na(det),
+                                                   !season_id %in% test_seasons) |>
+                                     dplyr::distinct(site_id, season_id) |>
+                                     dplyr::mutate(exists = 1),
+                                 by = c("site_id", "season_id")) |>
+                dplyr::mutate(idx = ifelse(is.na(exists), NA, row_number())) |>
+                dplyr::pull(idx)
+
+            keep <- keep[!is.na(keep)]
+
+            psi_in <- psi[, keep]
+
             pred_roc <- pROC::roc(response = occu_data$visit |>
                                       dplyr::select(site_id, season_id, visit_id, det) |>
                                       dplyr::filter(!is.na(det)) |>
@@ -167,7 +184,7 @@ calcDiagnostics <- function(occu_data, fit, test_seasons = NULL, verbose = TRUE,
                                       dplyr::group_by(site_id, season_id) |>
                                       dplyr::summarise(pseason = 1 - exp(sum(logoneminusp))) |>
                                       dplyr::ungroup() |>
-                                      dplyr::mutate(psi_mu = apply(psi, 2, mean),
+                                      dplyr::mutate(psi_mu = apply(psi_in, 2, mean),
                                                     pdet = psi_mu * pseason) |>
                                       dplyr::pull(pdet))
 
